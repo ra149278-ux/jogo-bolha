@@ -1,0 +1,23 @@
+COLO PROTEGIDO — BUBBLE HEALTH (V2)
+
+Recursos:
+- Bubble shooter: mirar, atirar, grudar e explodir grupos de 3+
+- 5 fases progressivas
+- Pontos, moedas, vidas e combos
+- Chuva de moedas, partículas, bomba no erro e confetes
+- Peças: útero, ovário, colo do útero, HPV, vacina HPV e teste DNA-HPV
+- Som gerado no próprio navegador
+- Controle por toque, mouse e teclado
+- Acessibilidade: contraste, aumento de texto, redução de movimento, aria-live e leitura por voz
+- VLibras integrado (requer internet para carregar)
+- PWA instalável e funcional offline para o jogo principal
+
+Como testar:
+1. Abra esta pasta por HTTP/HTTPS.
+2. Exemplo no computador:
+   python -m http.server 8080
+3. Abra http://localhost:8080
+4. No Chrome/Android, use “Instalar app” ou “Adicionar à tela inicial”.
+
+Observação:
+Conteúdo educativo. Não substitui orientação médica, rastreamento oficial ou protocolo de saúde local.

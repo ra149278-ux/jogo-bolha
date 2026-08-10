@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#7b2cbf">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Colo Protegido — Bubble Health</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --bg:#11071f;--panel:#1f0b3b;--txt:#fff;--muted:#e5d8ff;--accent:#ffd84d;
+  --focus:#00f0ff;--good:#56f0a4;--danger:#ff477e;--shadow:#0008;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0a0512;color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body{background:
+ radial-gradient(circle at 20% 10%,rgba(152,87,255,.4),transparent 28%),
+ radial-gradient(circle at 85% 15%,rgba(0,229,255,.14),transparent 24%),
+ linear-gradient(180deg,#1a0933 0%,#09040f 75%)}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.app{height:100%;max-width:820px;margin:auto;display:grid;grid-template-rows:auto 1fr auto;position:relative}
+header{padding:9px 10px 7px;background:linear-gradient(180deg,rgba(29,8,55,.97),rgba(29,8,55,.72));backdrop-filter:blur(12px);z-index:8;border-bottom:1px solid #ffffff18}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}
+.logo{width:40px;height:40px;border-radius:14px;background:radial-gradient(circle at 35% 28%,#fff 0 8%,#ff77b7 10% 30%,#a341d1 55%,#4a176b 100%);box-shadow:inset 0 0 0 2px #fff8,0 7px 20px #0007;display:grid;place-items:center;font-size:22px}
+h1{font-size:clamp(1rem,4vw,1.45rem);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:.72rem;color:var(--muted)}
+.stats{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+.pill{padding:5px 8px;border-radius:999px;background:#ffffff12;border:1px solid #ffffff22;font-weight:900;font-size:.78rem;box-shadow:inset 0 1px 0 #fff2}
+.progress{height:7px;background:#ffffff12;border-radius:999px;overflow:hidden;margin-top:7px;border:1px solid #ffffff17}
+.progress>div{height:100%;width:0;background:linear-gradient(90deg,#56f0a4,#ffd84d,#ff7eb3);transition:width .3s}
+.toolbar{display:flex;gap:6px;overflow:auto;padding-top:7px;scrollbar-width:none}
+.toolbar button,.bottom button,.modal button{
+  border:0;border-radius:13px;background:linear-gradient(#fff,#e9dcff);color:#2a1542;font-weight:900;
+  padding:8px 10px;box-shadow:0 4px 0 #a88bcf;white-space:nowrap
+}
+.toolbar button:active,.bottom button:active,.modal button:active{transform:translateY(2px);box-shadow:0 2px 0 #a88bcf}
+#gameWrap{position:relative;min-height:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.hudMsg{position:absolute;top:10px;left:50%;transform:translate(-50%,-8px);width:min(92%,650px);background:#fff;color:#32114e;border-radius:18px;padding:11px 14px;box-shadow:0 14px 40px #0009;opacity:0;pointer-events:none;transition:.22s;z-index:7}
+.hudMsg.show{opacity:1;transform:translate(-50%,0)}
+.hudMsg b{display:block;color:#7b2cbf;margin-bottom:2px}
+.combo{position:absolute;right:12px;top:10px;font-weight:1000;font-size:clamp(1rem,5vw,1.6rem);text-shadow:0 3px 10px #000;opacity:0;transform:scale(.7);transition:.2s;z-index:6}
+.combo.show{opacity:1;transform:scale(1)}
+.levelBanner{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:9}
+.levelBanner>div{padding:18px 24px;border-radius:24px;background:#12051fe8;border:2px solid #ffffff28;text-align:center;box-shadow:0 22px 60px #000;transform:scale(.8);opacity:0;transition:.25s}
+.levelBanner.show>div{transform:scale(1);opacity:1}
+.levelBanner h2{margin:0 0 4px;font-size:clamp(1.5rem,7vw,2.4rem)}
+.levelBanner p{margin:0;color:#e6d9ff}
+.bottom{padding:8px 10px 12px;background:#0d0619;border-top:1px solid #ffffff15;display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.bottom .shoot{background:linear-gradient(#ffe86f,#ffc72b);font-size:1.05rem;min-width:145px;box-shadow:0 5px 0 #b47400}
+.bottom .shoot:active{box-shadow:0 2px 0 #b47400}
+.bottom .side{min-width:0}
+.bottom .side button{width:100%;overflow:hidden;text-overflow:ellipsis}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.modalBack{position:fixed;inset:0;background:#000c;display:none;place-items:center;padding:16px;z-index:30}
+.modalBack.show{display:grid}
+.modal{max-width:650px;max-height:86vh;overflow:auto;background:#fff;color:#26113a;border-radius:24px;padding:20px;box-shadow:0 30px 90px #000}
+.modal h2{margin-top:0;color:#6a22ad}
+.modal p,.modal li{line-height:1.48}
+.modal .close{background:#6d28d9;color:#fff;box-shadow:0 4px 0 #411486}
+.factgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.factcard{background:#f3ecff;border-radius:15px;padding:10px;border:1px solid #e1d3ff}
+.factcard b{display:block;color:#6c23aa}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#f0e5ff;color:#5c1e96;font-weight:900;font-size:.75rem}
+.contrast{--txt:#fff;filter:contrast(1.15)}
+.contrast body,.contrast{background:#000!important}
+.bigText{font-size:118%}
+.reduced *{animation:none!important;transition:none!important}
+@media(max-width:520px){
+ .sub{display:none}.logo{width:36px;height:36px}.pill{font-size:.72rem;padding:4px 7px}
+ .bottom{grid-template-columns:1fr 1.25fr 1fr}.bottom .shoot{min-width:0}
+ .factgrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="topline">
+    <div class="brand">
+      <div class="logo">🫧</div>
+      <div><h1>Colo Protegido</h1><div class="sub">Bubble Shooter • Saúde Reprodutiva</div></div>
+    </div>
+    <div class="stats" aria-label="Indicadores do jogo">
+      <span class="pill">Fase <span id="level">1</span>/5</span>
+      <span class="pill">🪙 <span id="coins">0</span></span>
+      <span class="pill">⭐ <span id="score">0</span></span>
+      <span class="pill">❤️ <span id="lives">5</span></span>
+    </div>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div>
+  <div class="toolbar" role="toolbar" aria-label="Acessibilidade">
+    <button id="helpBtn">❔ Como jogar</button>
+    <button id="soundBtn" aria-pressed="true">🔊 Som</button>
+    <button id="contrastBtn" aria-pressed="false">◐ Contraste</button>
+    <button id="textBtn" aria-pressed="false">A+ Texto</button>
+    <button id="motionBtn" aria-pressed="false">🧘 Menos movimento</button>
+    <button id="librasBtn">🤟 Libras</button>
+  </div>
+</header>
+
+<main id="gameWrap">
+  <canvas id="game" aria-label="Jogo de combinar bolhas de saúde reprodutiva"></canvas>
+  <div id="hudMsg" class="hudMsg" role="status" aria-live="polite"></div>
+  <div id="combo" class="combo">COMBO x2</div>
+  <div id="levelBanner" class="levelBanner"><div><h2 id="bannerTitle">Fase 1</h2><p id="bannerText"></p></div></div>
+  <div id="announce" class="sr" aria-live="assertive"></div>
+</main>
+
+<footer class="bottom">
+  <div class="side"><button id="restartBtn">↻ Reiniciar</button></div>
+  <button id="shootBtn" class="shoot">🎯 ATIRAR</button>
+  <div class="side"><button id="learnBtn">🧠 Aprender</button></div>
+</footer>
+</div>
+
+<div id="modalBack" class="modalBack" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h2 id="modalTitle">Como jogar</h2>
+    <div id="modalBody"></div>
+    <button id="closeModal" class="close">Fechar</button>
+  </div>
+</div>
+
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const wrap=document.getElementById('gameWrap'),announce=document.getElementById('announce');
+const hudMsg=document.getElementById('hudMsg'),comboEl=document.getElementById('combo');
+const levelEl=document.getElementById('level'),coinsEl=document.getElementById('coins'),scoreEl=document.getElementById('score'),livesEl=document.getElementById('lives'),progressBar=document.getElementById('progressBar');
+let W=0,H=0,dpr=1,R=28,rowH=48,cols=10;
+let grid=[],particles=[],floatText=[],shot=null,nextType=0,gameOver=false,won=false;
+let shooter={x:0,y:0,angle:-Math.PI/2},score=0,coins=0,lives=5,level=1,misses=0,combo=1,lastClearAt=0,soundOn=true;
+let goalClears=0,levelClears=0;
+
+const TYPES=[
+ {id:'utero',name:'Útero',c1:'#ff9ac8',c2:'#ff4f93',lesson:'O útero é um órgão muscular do sistema reprodutor feminino. O colo do útero é sua porção inferior.'},
+ {id:'ovario',name:'Ovário',c1:'#ffc57e',c2:'#f28a35',lesson:'Os ovários produzem ovócitos e hormônios que participam do ciclo reprodutivo.'},
+ {id:'colo',name:'Colo do útero',c1:'#e8a1ff',c2:'#b94ce6',lesson:'O colo do útero é a parte inferior do útero e é o local onde se origina o câncer do colo uterino.'},
+ {id:'hpv',name:'HPV',c1:'#ad8cff',c2:'#6f49d8',lesson:'A persistência de tipos oncogênicos de HPV é o principal fator relacionado ao câncer do colo do útero. HPV não é sinônimo de câncer.'},
+ {id:'vacina',name:'Vacina HPV',c1:'#7df3bb',c2:'#2fc987',lesson:'A vacinação contra HPV é uma importante medida de prevenção.'},
+ {id:'teste',name:'Teste DNA-HPV',c1:'#7ad6ff',c2:'#2b9dea',lesson:'O rastreamento ajuda a identificar HPV oncogênico e alterações que precisam de acompanhamento.'}
+];
+
+const LEVELS=[
+ {title:'Conheça o corpo',desc:'Combine útero, ovário e colo do útero.',types:[0,1,2],rows:5,target:7},
+ {title:'Entenda o HPV',desc:'Agora o HPV entra no tabuleiro. HPV não significa câncer.',types:[0,1,2,3],rows:5,target:9},
+ {title:'Prevenção',desc:'A vacina entra como peça especial educativa.',types:[0,2,3,4],rows:6,target:10},
+ {title:'Rastreamento',desc:'Use também o teste DNA-HPV.',types:[0,2,3,4,5],rows:6,target:11},
+ {title:'Missão Colo Protegido',desc:'Fase final: combine prevenção, conhecimento e rastreamento.',types:[0,1,2,3,4,5],rows:7,target:13}
+];
+
+function resize(){
+ const r=wrap.getBoundingClientRect();W=r.width;H=r.height;dpr=Math.min(devicePixelRatio||1,2);
+ canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+ R=Math.max(21,Math.min(30,W/12.8));rowH=R*1.72;cols=Math.max(8,Math.floor(W/(R*2)));
+ shooter.x=W/2;shooter.y=H-58;draw();
+}
+addEventListener('resize',resize);
+
+function cellXY(r,c){return{x:R+c*R*2+(r%2)*R,y:R+8+r*rowH}}
+function key(r,c){return r+','+c}
+function get(r,c){return grid.find(b=>b.r===r&&b.c===c)}
+function neighbors(r,c){
+ const ds=r%2===0?[[0,-1],[0,1],[-1,-1],[-1,0],[1,-1],[1,0]]:[[0,-1],[0,1],[-1,0],[-1,1],[1,0],[1,1]];
+ return ds.map(([dr,dc])=>get(r+dr,c+dc)).filter(Boolean)
+}
+function nearestCell(x,y){
+ let r=Math.max(0,Math.round((y-R-8)/rowH)),off=(r%2)*R,c=Math.round((x-R-off)/(R*2));
+ c=Math.max(0,Math.min(cols-1,c));return{r,c}
+}
+function randType(){const arr=LEVELS[level-1].types;return arr[Math.floor(Math.random()*arr.length)]}
+function updateStats(){
+ levelEl.textContent=level;coinsEl.textContent=coins;scoreEl.textContent=score;livesEl.textContent=lives;
+ const target=LEVELS[level-1].target;progressBar.style.width=Math.min(100,(levelClears/target)*100)+'%';
+}
+
+function startGame(){
+ score=0;coins=0;lives=5;level=1;misses=0;combo=1;goalClears=0;levelClears=0;won=false;gameOver=false;particles=[];floatText=[];loadLevel(true)
+}
+function loadLevel(first=false){
+ grid=[];shot=null;levelClears=0;misses=0;
+ const cfg=LEVELS[level-1];
+ for(let r=0;r<cfg.rows;r++)for(let c=0;c<cols-(r%2);c++){
+   if(Math.random()<.9)grid.push({r,c,type:cfg.types[Math.floor(Math.random()*cfg.types.length)]})
+ }
+ nextType=randType();updateStats();showBanner('Fase '+level+' — '+cfg.title,cfg.desc);
+ if(!first)playJingle([523,659,784]);draw()
+}
+function showBanner(title,text){
+ const box=document.getElementById('levelBanner');document.getElementById('bannerTitle').textContent=title;document.getElementById('bannerText').textContent=text;
+ box.classList.add('show');setTimeout(()=>box.classList.remove('show'),1900);speak(title+'. '+text)
+}
+
+function drawBubble(x,y,type,alpha=1,scale=1){
+ const t=TYPES[type],rr=R*scale;ctx.save();ctx.globalAlpha=alpha;
+ ctx.shadowColor='#0009';ctx.shadowBlur=8*scale;ctx.shadowOffsetY=4*scale;
+ let g=ctx.createRadialGradient(x-rr*.35,y-rr*.45,rr*.06,x,y,rr);
+ g.addColorStop(0,'#fff');g.addColorStop(.14,t.c1);g.addColorStop(.66,t.c2);g.addColorStop(1,'#2d123a');
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rr-1,0,Math.PI*2);ctx.fill();
+ ctx.shadowColor='transparent';ctx.strokeStyle='#ffffffaa';ctx.lineWidth=1.7;ctx.stroke();
+ ctx.beginPath();ctx.arc(x-rr*.28,y-rr*.32,rr*.12,0,Math.PI*2);ctx.fillStyle='#ffffff88';ctx.fill();
+ drawIcon(type,x,y,rr*.75);ctx.restore()
+}
+function drawIcon(type,x,y,s){
+ ctx.save();ctx.translate(x,y);ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=Math.max(1.8,s*.09);ctx.strokeStyle='#361346';ctx.fillStyle='#fff';
+ if(type===0){
+   ctx.beginPath();ctx.ellipse(0,s*.03,s*.22,s*.27,0,0,Math.PI*2);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(-s*.12,-s*.18);ctx.quadraticCurveTo(-s*.36,-s*.40,-s*.52,-s*.24);ctx.moveTo(s*.12,-s*.18);ctx.quadraticCurveTo(s*.36,-s*.40,s*.52,-s*.24);ctx.stroke();
+   ctx.beginPath();ctx.ellipse(-s*.55,-s*.24,s*.08,s*.05,0,0,Math.PI*2);ctx.ellipse(s*.55,-s*.24,s*.08,s*.05,0,0,Math.PI*2);ctx.fill();
+   ctx.beginPath();ctx.moveTo(0,s*.28);ctx.lineTo(0,s*.48);ctx.stroke();
+ }else if(type===1){
+   ctx.beginPath();ctx.ellipse(0,0,s*.45,s*.28,-.16,0,Math.PI*2);ctx.fill();ctx.stroke();
+   for(let i=0;i<5;i++){let a=i*1.22;ctx.beginPath();ctx.arc(Math.cos(a)*s*.22,Math.sin(a)*s*.13,s*.045,0,Math.PI*2);ctx.stroke()}
+ }else if(type===2){
+   ctx.beginPath();ctx.ellipse(0,-s*.12,s*.30,s*.22,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.beginPath();ctx.moveTo(-s*.2,0);ctx.quadraticCurveTo(-s*.14,s*.42,0,s*.47);ctx.quadraticCurveTo(s*.14,s*.42,s*.2,0);ctx.stroke();
+   ctx.beginPath();ctx.arc(0,-s*.12,s*.055,0,Math.PI*2);ctx.stroke()
+ }else if(type===3){
+   ctx.beginPath();ctx.arc(0,0,s*.29,0,Math.PI*2);ctx.fill();ctx.stroke();
+   for(let i=0;i<10;i++){let a=i*Math.PI*2/10;ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.27,Math.sin(a)*s*.27);ctx.lineTo(Math.cos(a)*s*.47,Math.sin(a)*s*.47);ctx.stroke();ctx.beginPath();ctx.arc(Math.cos(a)*s*.5,Math.sin(a)*s*.5,s*.04,0,Math.PI*2);ctx.fill()}
+   ctx.font=`900 ${s*.22}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#361346';ctx.fillText('HPV',0,0)
+ }else if(type===4){
+   ctx.rotate(-.68);ctx.fillRect(-s*.09,-s*.32,s*.18,s*.47);ctx.strokeRect(-s*.09,-s*.32,s*.18,s*.47);ctx.beginPath();ctx.moveTo(0,s*.15);ctx.lineTo(0,s*.5);ctx.stroke();ctx.beginPath();ctx.moveTo(-s*.16,-s*.32);ctx.lineTo(s*.16,-s*.32);ctx.stroke()
+ }else{
+   ctx.font=`900 ${s*.17}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#361346';ctx.fillText('DNA',0,-s*.05);
+   ctx.beginPath();ctx.moveTo(-s*.22,-s*.4);ctx.bezierCurveTo(s*.28,-s*.16,-s*.28,s*.16,s*.22,s*.4);ctx.moveTo(s*.22,-s*.4);ctx.bezierCurveTo(-s*.28,-s*.16,s*.28,s*.16,-s*.22,s*.4);ctx.stroke()
+ }
+ ctx.restore()
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#31115f');bg.addColorStop(1,'#10071e');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ // decorative glow
+ ctx.fillStyle='#ffffff06';for(let i=0;i<12;i++){ctx.beginPath();ctx.arc((i*83)%W,30+(i*97)%Math.max(60,H-120),18+(i%4)*7,0,Math.PI*2);ctx.fill()}
+ // danger line
+ ctx.save();ctx.setLineDash([10,8]);ctx.strokeStyle='#ff477eaa';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,H-175);ctx.lineTo(W,H-175);ctx.stroke();ctx.restore();
+ for(const b of grid){const p=cellXY(b.r,b.c);drawBubble(p.x,p.y,b.type)}
+ // trajectory
+ ctx.save();ctx.strokeStyle='#ffffff88';ctx.lineWidth=3;ctx.setLineDash([7,8]);ctx.beginPath();ctx.moveTo(shooter.x,shooter.y);ctx.lineTo(shooter.x+Math.cos(shooter.angle)*150,shooter.y+Math.sin(shooter.angle)*150);ctx.stroke();ctx.restore();
+ // launcher
+ ctx.save();ctx.translate(shooter.x,shooter.y+10);ctx.rotate(shooter.angle+Math.PI/2);let lg=ctx.createLinearGradient(-18,0,18,0);lg.addColorStop(0,'#372047');lg.addColorStop(.5,'#9562c2');lg.addColorStop(1,'#2c173b');ctx.fillStyle=lg;ctx.fillRect(-14,-44,28,45);ctx.restore();
+ drawBubble(shooter.x,shooter.y,nextType,1,1.03);
+ ctx.fillStyle='#fff';ctx.font='800 12px system-ui';ctx.textAlign='center';ctx.fillText(TYPES[nextType].name,shooter.x,shooter.y+R+20);
+ if(shot)drawBubble(shot.x,shot.y,shot.type);
+ // particles
+ for(const p of particles){ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()}
+ ctx.globalAlpha=1;
+ for(const f of floatText){ctx.globalAlpha=f.life;ctx.fillStyle=f.color;ctx.font=`900 ${f.size}px system-ui`;ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
+ if(gameOver){ctx.fillStyle='#000c';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='1000 30px system-ui';ctx.fillText(won?'MISSÃO CONCLUÍDA!':'FIM DA RODADA',W/2,H/2-12);ctx.font='700 16px system-ui';ctx.fillText(won?'Prevenção + rastreamento + conhecimento':'Reinicie e tente novamente',W/2,H/2+22)}
+}
+function animateParticles(){
+ if(!particles.length&&!floatText.length)return;
+ for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=.08;p.life-=.025}
+ particles=particles.filter(p=>p.life>0);
+ for(const f of floatText){f.y-=.55;f.life-=.02}
+ floatText=floatText.filter(f=>f.life>0);draw();requestAnimationFrame(animateParticles)
+}
+function burst(x,y,color,n=16){
+ for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2,s=1.5+Math.random()*4;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:1,size:2+Math.random()*4,color})}
+ requestAnimationFrame(animateParticles)
+}
+function coinRain(n=12){
+ for(let i=0;i<n;i++){particles.push({x:Math.random()*W,y:-10-Math.random()*80,vx:(Math.random()-.5)*1.2,vy:2+Math.random()*2.2,life:1.4,size:4+Math.random()*4,color:'#ffd84d'})}
+ requestAnimationFrame(animateParticles)
+}
+function confetti(){
+ const colors=['#ff477e','#ffd84d','#56f0a4','#55c7ff','#d77cff','#ffffff'];
+ for(let i=0;i<120;i++){particles.push({x:Math.random()*W,y:-20-Math.random()*H*.3,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,life:1.8,size:3+Math.random()*4,color:colors[i%colors.length]})}
+ requestAnimationFrame(animateParticles)
+}
+function floatScore(x,y,text,color='#fff'){floatText.push({x,y,text,color,life:1,size:18});requestAnimationFrame(animateParticles)}
+
+function setAim(x,y){
+ let a=Math.atan2(y-shooter.y,x-shooter.x);a=Math.max(-Math.PI+.28,Math.min(-.28,a));shooter.angle=a;draw()
+}
+function shoot(){
+ if(shot||gameOver)return;beep(650,.05);
+ shot={x:shooter.x,y:shooter.y,type:nextType,vx:Math.cos(shooter.angle)*9,vy:Math.sin(shooter.angle)*9};nextType=randType();requestAnimationFrame(step)
+}
+function step(){
+ if(!shot)return;shot.x+=shot.vx;shot.y+=shot.vy;
+ if(shot.x<R||shot.x>W-R){shot.vx*=-1;shot.x=Math.max(R,Math.min(W-R,shot.x));beep(270,.025)}
+ let hit=shot.y<R+7;
+ for(const b of grid){const p=cellXY(b.r,b.c);if(Math.hypot(shot.x-p.x,shot.y-p.y)<R*1.82){hit=true;break}}
+ if(hit){attachShot();return}
+ draw();requestAnimationFrame(step)
+}
+function attachShot(){
+ const st=shot;let pos=nearestCell(st.x,st.y);
+ if(get(pos.r,pos.c)){
+   let best=null,bd=1e9;
+   for(let rr=Math.max(0,pos.r-1);rr<=pos.r+1;rr++)for(let cc=Math.max(0,pos.c-2);cc<=Math.min(cols-1,pos.c+2);cc++){
+     if(!get(rr,cc)){let p=cellXY(rr,cc),d=Math.hypot(st.x-p.x,st.y-p.y);if(d<bd){bd=d;best={r:rr,c:cc}}}
+   }
+   if(best)pos=best;else pos={r:pos.r+1,c:pos.c}
+ }
+ const b={r:pos.r,c:pos.c,type:st.type};grid.push(b);shot=null;resolve(b);checkState();draw()
+}
+function cluster(start){
+ const out=[],seen=new Set(),stack=[start];
+ while(stack.length){const b=stack.pop(),k=key(b.r,b.c);if(seen.has(k)||b.type!==start.type)continue;seen.add(k);out.push(b);neighbors(b.r,b.c).forEach(n=>stack.push(n))}
+ return out
+}
+function resolve(b){
+ const m=cluster(b),now=Date.now();
+ if(m.length>=3){
+   combo=(now-lastClearAt<3500)?Math.min(combo+1,6):1;lastClearAt=now;
+   const mult=combo;const pts=m.length*120*mult;const cns=m.length*3*mult;
+   for(const x of m){const p=cellXY(x.r,x.c);burst(p.x,p.y,TYPES[x.type].c1,12)}
+   grid=grid.filter(x=>!m.includes(x));score+=pts;coins+=cns;levelClears+=1;goalClears+=1;
+   floatScore(cellXY(b.r,b.c).x,cellXY(b.r,b.c).y,'+'+pts,'#ffd84d');coinRain(Math.min(18,5+m.length*2));
+   comboEl.textContent='COMBO x'+mult;comboEl.classList.add('show');setTimeout(()=>comboEl.classList.remove('show'),900);
+   playJingle([820,1050,1280]);showLesson(b.type,m.length);
+   dropFloating();misses=0;
+ }else{
+   combo=1;misses++;
+   if(misses%3===0){lives--;bombPenalty();showTip('💣 Bomba!', 'Combinação insuficiente: uma bomba apareceu e você perdeu 1 vida. Mire para formar grupos de 3 ou mais.')}
+ }
+ updateStats()
+}
+function bombPenalty(){
+ beep(105,.35);burst(shooter.x,shooter.y-60,'#ff477e',30);floatScore(shooter.x,shooter.y-80,'💣 -1 ❤️','#ff8ab1')
+}
+function dropFloating(){
+ const top=grid.filter(b=>b.r===0),connected=new Set(),stack=[...top];
+ while(stack.length){const b=stack.pop(),k=key(b.r,b.c);if(connected.has(k))continue;connected.add(k);neighbors(b.r,b.c).forEach(n=>stack.push(n))}
+ const falling=grid.filter(b=>!connected.has(key(b.r,b.c)));
+ if(falling.length){
+   falling.forEach(b=>{const p=cellXY(b.r,b.c);burst(p.x,p.y,'#ffd84d',8)});
+   grid=grid.filter(b=>connected.has(key(b.r,b.c)));score+=falling.length*80;coins+=falling.length*2;coinRain(Math.min(20,falling.length*2))
+ }
+}
+function checkState(){
+ const cfg=LEVELS[level-1];
+ if(levelClears>=cfg.target || !grid.length){
+   if(level<LEVELS.length){level++;coins+=20;score+=1000;loadLevel()}
+   else{won=true;gameOver=true;coins+=50;score+=3000;updateStats();confetti();playJingle([523,659,784,1046,1318]);showTip('🏆 Parabéns!','Você concluiu a missão: conhecimento, vacinação e rastreamento são partes importantes da prevenção do câncer do colo do útero.')}
+   return
+ }
+ if(lives<=0 || grid.some(b=>cellXY(b.r,b.c).y>H-175)){gameOver=true;lives=Math.max(0,lives);updateStats();beep(90,.6);speak('Fim da rodada. Tente novamente.')}
+}
+function showLesson(type,count){showTip('💥 '+count+' '+TYPES[type].name+' combinados!',TYPES[type].lesson)}
+function showTip(title,text){
+ hudMsg.innerHTML='<b>'+title+'</b>'+text;hudMsg.classList.add('show');speak(text);setTimeout(()=>hudMsg.classList.remove('show'),3900)
+}
+function speak(text){
+ announce.textContent=text;
+ if(soundOn&&'speechSynthesis'in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=.95;speechSynthesis.speak(u)}
+}
+function beep(freq=440,d=.08){
+ if(!soundOn)return;
+ try{const A=new(window.AudioContext||window.webkitAudioContext)(),o=A.createOscillator(),g=A.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.08,A.currentTime);g.gain.exponentialRampToValueAtTime(.001,A.currentTime+d);o.connect(g);g.connect(A.destination);o.start();o.stop(A.currentTime+d)}catch(e){}
+}
+function playJingle(notes){notes.forEach((f,i)=>setTimeout(()=>beep(f,.11),i*85))}
+
+let dragging=false;
+canvas.addEventListener('pointerdown',e=>{dragging=true;const r=canvas.getBoundingClientRect();setAim(e.clientX-r.left,e.clientY-r.top)});
+canvas.addEventListener('pointermove',e=>{if(!dragging)return;const r=canvas.getBoundingClientRect();setAim(e.clientX-r.left,e.clientY-r.top)});
+canvas.addEventListener('pointerup',()=>{if(dragging){dragging=false;shoot()}});
+addEventListener('keydown',e=>{
+ if(e.key==='ArrowLeft'){shooter.angle=Math.max(-Math.PI+.28,shooter.angle-.08);draw()}
+ if(e.key==='ArrowRight'){shooter.angle=Math.min(-.28,shooter.angle+.08);draw()}
+ if(e.key===' '||e.key==='Enter'){e.preventDefault();shoot()}
+});
+
+document.getElementById('shootBtn').onclick=shoot;
+document.getElementById('restartBtn').onclick=startGame;
+
+const modalBack=document.getElementById('modalBack'),modalTitle=document.getElementById('modalTitle'),modalBody=document.getElementById('modalBody');
+function modal(t,h){modalTitle.textContent=t;modalBody.innerHTML=h;modalBack.classList.add('show');document.getElementById('closeModal').focus()}
+document.getElementById('closeModal').onclick=()=>modalBack.classList.remove('show');
+document.getElementById('helpBtn').onclick=()=>modal('Como jogar',`
+<p><b>Mire, atire, grude e exploda.</b> Quando 3 ou mais bolhas iguais ficam conectadas, elas desaparecem e geram pontos, moedas e informações educativas.</p>
+<ul>
+<li>No celular: arraste para mirar e solte para atirar.</li>
+<li>No teclado: ← → para mirar; Espaço/Enter para atirar.</li>
+<li>Combos consecutivos multiplicam seus pontos.</li>
+<li>A cada 3 tentativas sem formar trio, aparece uma bomba e você perde uma vida.</li>
+<li>Complete a barra da fase para avançar.</li>
+</ul>
+<p><b>Peças:</b> útero, ovário, colo do útero, HPV, vacina HPV e teste DNA-HPV.</p>`);
+document.getElementById('learnBtn').onclick=()=>modal('Aprenda',`
+<div class="factgrid">
+<div class="factcard"><b>Útero</b>Órgão muscular do sistema reprodutor feminino.</div>
+<div class="factcard"><b>Colo do útero</b>Porção inferior do útero e local de origem do câncer cervical.</div>
+<div class="factcard"><b>HPV</b>Tipos oncogênicos persistentes estão relacionados ao desenvolvimento do câncer cervical. HPV não é sinônimo de câncer.</div>
+<div class="factcard"><b>Vacina HPV</b>Importante estratégia de prevenção.</div>
+<div class="factcard"><b>Rastreamento</b>Ajuda a identificar risco e alterações que precisam de acompanhamento.</div>
+<div class="factcard"><b>Mensagem-chave</b>Prevenção, vacinação, rastreamento e acompanhamento adequado reduzem risco e favorecem diagnóstico precoce.</div>
+</div>
+<p><span class="badge">Uso educativo</span> Este jogo não substitui orientação profissional nem protocolo local de saúde.</p>`);
+document.getElementById('soundBtn').onclick=e=>{soundOn=!soundOn;e.currentTarget.setAttribute('aria-pressed',soundOn);e.currentTarget.textContent=soundOn?'🔊 Som':'🔇 Som'};
+document.getElementById('contrastBtn').onclick=e=>{document.documentElement.classList.toggle('contrast');e.currentTarget.setAttribute('aria-pressed',document.documentElement.classList.contains('contrast'));draw()};
+document.getElementById('textBtn').onclick=e=>{document.documentElement.classList.toggle('bigText');e.currentTarget.setAttribute('aria-pressed',document.documentElement.classList.contains('bigText'))};
+document.getElementById('motionBtn').onclick=e=>{document.documentElement.classList.toggle('reduced');e.currentTarget.setAttribute('aria-pressed',document.documentElement.classList.contains('reduced'))};
+document.getElementById('librasBtn').onclick=()=>modal('Libras',`
+<p>O aplicativo integra o <b>VLibras</b>. Use o botão flutuante do VLibras para tradução automática do conteúdo textual em português para Libras.</p>
+<p>O VLibras é carregado pela internet; o jogo principal continua funcionando offline depois de instalado.</p>`);
+
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+resize();startGame();
+</script>
+
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
+</div>
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>try{new window.VLibras.Widget('https://vlibras.gov.br/app')}catch(e){}</script>
+</body>
+</html>
